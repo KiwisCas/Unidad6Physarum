@@ -231,7 +231,7 @@ function initWhaleShape() {
 function initAudio() {
     const defaultAudioUrl = './assets/song.mp3';
     audio = new Audio(defaultAudioUrl);
-    audio.loop = true;
+    audio.loop = false;
     audio.preload = 'auto';
     audio.addEventListener('canplay', () => updateAudioStatus('Canción local lista · pulsa reproducir'));
     audio.addEventListener('error', () => updateAudioStatus('No se pudo cargar la canción local'));
@@ -239,6 +239,16 @@ function initAudio() {
     const button = document.getElementById('audioToggle');
     const beatButton = document.getElementById('beatTrigger');
     const fileInput = document.getElementById('audioFile');
+    audio.addEventListener('ended', () => {
+        stopVocalAnalysis();
+        button.textContent = 'Reproducir canción';
+        updateAudioStatus('Canción terminada · pulsa \\ para reproducir de nuevo');
+    });
+    window.addEventListener('keydown', (e) => {
+        if (e.key !== '\\' || !audio.ended) return;
+        audio.currentTime = 0;
+        button.click();
+    });
     fileInput.addEventListener('change', () => {
         const file = fileInput.files[0];
         if (!file) return;
@@ -484,17 +494,17 @@ function animate() {
 
     const uniforms = particleVariable.material.uniforms;
     updateAudioLevels();
-    uniforms.uSensorDist.value  = currentParams.sensorDistance;
-    uniforms.uSensorAngle.value = currentParams.sensorAngle;
-    uniforms.uRotAngle.value    = currentParams.rotationAngle;
-    uniforms.uMoveDist.value    = currentParams.moveDistance;
+    uniforms.uSensorDist.value  = currentParams.sensorDistance * (1.0 + audioLevel * 0.3 + bassLevel * 0.45);
+    uniforms.uSensorAngle.value = currentParams.sensorAngle + audioLevel * 0.28 + bassLevel * 0.4;
+    uniforms.uRotAngle.value    = currentParams.rotationAngle * (1.0 + audioLevel * 0.35 + bassLevel * 0.6);
+    uniforms.uMoveDist.value    = currentParams.moveDistance * (1.0 + audioLevel * 0.5 + bassLevel * 0.85);
     uniforms.uAttractForce.value = isMouseDown
         ? Math.max(0.75, currentParams.attractForce * 2.5)
         : currentParams.attractForce;
     uniforms.uMouse.value.copy(mouse);
-    uniforms.uAdaptiveStrength.value = currentParams.adaptiveStrength + bassLevel * 0.35;
+    uniforms.uAdaptiveStrength.value = currentParams.adaptiveStrength + audioLevel * 0.2 + bassLevel * 0.75;
     uniforms.uAudioLevel.value = audioLevel;
-    uniforms.uMotionJitter.value = audioLevel * 0.08 + bassLevel * 0.04;
+    uniforms.uMotionJitter.value = audioLevel * 0.2 + bassLevel * 0.14;
     uniforms.uAudioBass.value = bassLevel;
     uniforms.uShapeStrength.value = currentParams.shapeStrength;
     uniforms.uTime.value = simulationTime;

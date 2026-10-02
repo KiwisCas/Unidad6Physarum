@@ -11,6 +11,7 @@ export const computeShader = `
     uniform float uAttractForce;
     uniform float uAdaptiveStrength;
     uniform float uAudioLevel;
+    uniform float uAudioBass;
     uniform float uMotionJitter;
     uniform float uBeat;
     uniform sampler2D uShapePositions;
@@ -65,9 +66,9 @@ export const computeShader = `
         }
 
         // Avanzar posición y ajustar bordes (Wrapping)
-        float pulse = 1.0 + uAudioLevel * 0.12 + uBeat * 0.09;
-        heading += (rand(pos + vec2(heading)) - 0.5) * (uMotionJitter + uBeat * 0.045);
-        pos += vec2(cos(heading), sin(heading + 1.5708)) * uBeat * 0.0018;
+        float pulse = 1.0 + uAudioLevel * 0.3 + uAudioBass * 0.45 + uBeat * 0.2;
+        heading += (rand(pos + vec2(heading)) - 0.5) * (uMotionJitter + uAudioBass * 0.08 + uBeat * 0.1);
+        pos += vec2(cos(heading), sin(heading + 1.5708)) * uBeat * 0.0035;
         pos += vec2(cos(heading), sin(heading)) * uMoveDist * pulse / adaptive;
         pos = fract(pos + vec2(1.0));
         vec2 shapePosition = texture2D(uShapePositions, uv).xy;
@@ -76,9 +77,11 @@ export const computeShader = `
         shapePosition.y += sin(bodyPhase) * 0.018 * tailWeight;
         shapePosition.x += cos(bodyPhase * 0.7) * 0.005 * tailWeight;
         shapePosition.y += sin(uTime * 1.8) * 0.004;
-        pos = mix(pos, shapePosition, uShapeStrength);
+        float whaleParticle = step(0.3, rand(uv + vec2(4.17, 8.31)));
+        pos = mix(pos, shapePosition, uShapeStrength * whaleParticle);
 
-        gl_FragColor = vec4(pos, heading, 1.0);
+        float greenParticle = (uShapeStrength > 0.001) ? (1.0 - whaleParticle) : 0.0;
+        gl_FragColor = vec4(pos, heading, greenParticle);
     }
 `;
 
@@ -113,7 +116,8 @@ export const particleFragmentShader = `
         float soft = 1.0 - smoothstep(0.2, 0.5, length(point));
         float localPulse = 0.5 + 0.5 * sin(vParticleUv.x * 91.0 + vParticleUv.y * 57.0);
         float audioVariation = 1.0 + uAudioLevel * (localPulse - 0.5) * 0.06 + uBeat * 0.12;
-        gl_FragColor = vec4(vec3(uDeposit * soft * audioVariation), 1.0);
+        float deposit = uDeposit * soft * audioVariation;
+        gl_FragColor = vec4(vec3(deposit), 1.0);
     }
 `;
 
@@ -145,7 +149,7 @@ export const trailFragmentShader = `
         sum += texture2D(uPrevTrail, vUv + vec2(uTexelSize.x,  0.0)).r;
         sum += texture2D(uPrevTrail, vUv + vec2(-uTexelSize.x, uTexelSize.y)).r;
         sum += texture2D(uPrevTrail, vUv + vec2(0.0,          uTexelSize.y)).r;
-        sum += texture2D(uPrevTrail, vUv + vec2(uTexelSize.x,  uTexelSize.y)).r;
+        sum += texture2D(uPrevTrail, vUv + vec2(uTexelSize.x, uTexelSize.y)).r;
 
         float diffused = sum / 9.0;
         gl_FragColor = vec4(vec3(min(diffused * uDecay, 1.0)), 1.0);
