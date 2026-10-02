@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physarum Live Visuals - GPU Particles</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #030712;
+            font-family: monospace;
+        }
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #f1f5f9;
+            background: rgba(3, 7, 18, 0.85);
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            pointer-events: auto;
+            user-select: none;
+        }
+        h1 { margin: 0 0 8px 0; font-size: 14px; color: #7dd3fc; text-transform: uppercase; }
+        p { margin: 4px 0; font-size: 12px; color: #94a3b8; }
+        span { color: #86efac; }
+        button {
+            margin-top: 10px;
+            padding: 6px 10px;
+            color: #030712;
+            background: #7dd3fc;
+            border: 0;
+            border-radius: 4px;
+            font: inherit;
+            cursor: pointer;
+        }
+        body.presentation-mode {
+            cursor: none;
+        }
+        body.presentation-mode #ui {
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui">
+        <h1>Physarum Live Performance</h1>
+        <p><strong>[1]</strong> Estado: <span>Filamentos Finos (Intro)</span></p>
+        <p><strong>[2]</strong> Estado: <span>Red Orgánica (Verso)</span></p>
+        <p><strong>[3]</strong> Estado: <span>Caos Dinámico (Coro)</span></p>
+        <p><strong>[4]</strong> Estado: <span>Anillos Atractores (Puente)</span></p>
+        <p><strong>[0-9, A-Z]</strong> 36 personalidades Physarum · <strong>[G]</strong> Beat</p>
+        <p><strong>[W]</strong> Contenedor ballena · <strong>[H]</strong> Modo escenario</p>
+        <p><strong>[Click / Arrastrar]</strong> Vértice Atractor en Vivo</p>
+        <button id="audioToggle" type="button">Reproducir canción</button>
+        <button id="beatTrigger" type="button">Beat</button>
+        <input id="audioFile" type="file" accept="audio/*">
+        <p id="audioStatus">Canción local lista · pulsa reproducir</p>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module" src="./main.js"></script>
+</body>
+</html>
