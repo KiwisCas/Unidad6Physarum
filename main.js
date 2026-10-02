@@ -132,16 +132,17 @@ function init() {
     window.addEventListener('resize', onWindowResize);
     window.addEventListener('keydown', (e) => {
         const key = e.key.toLowerCase();
-        if (key === 'h') {
+        if (key === '=') {
             presentationMode = !presentationMode;
             document.body.classList.toggle('presentation-mode', presentationMode);
             return;
         }
         if (key === 'w') {
-            whaleMode = !whaleMode;
-            targetParams.shapeStrength = whaleMode ? 0.56 : 0.0;
-            if (whaleMode) clearTrails();
-            updateAudioStatus(whaleMode ? 'Contenedor ballena activo' : 'Forma libre activa');
+            if (e.repeat) return;
+            whaleMode = true;
+            targetParams.shapeStrength = 0.56;
+            clearTrails();
+            updateAudioStatus('Contenedor ballena activo · mantén W');
             return;
         }
         if (key === 'g') {
@@ -162,6 +163,12 @@ function init() {
             Object.assign(targetParams, POINTS[key]);
             updateAudioStatus(`Point ${key.toUpperCase()} activo`);
         }
+    });
+    window.addEventListener('keyup', (e) => {
+        if (e.key.toLowerCase() !== 'w') return;
+        whaleMode = false;
+        targetParams.shapeStrength = 0.0;
+        updateAudioStatus('Forma libre activa');
     });
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerdown', (e) => { isMouseDown = true; onPointerMove(e); });
@@ -222,7 +229,7 @@ function initWhaleShape() {
 }
 
 function initAudio() {
-    const defaultAudioUrl = './assets/Jhen%C3%A9%20Aiko%20-%20So%20Good%20feat.%20Kendrick%20Lamar%20%28Official%20Audio%29.wav';
+    const defaultAudioUrl = './assets/song.mp3';
     audio = new Audio(defaultAudioUrl);
     audio.loop = true;
     audio.preload = 'auto';
@@ -255,11 +262,19 @@ function initAudio() {
         if (audio.paused) {
             try {
                 await startVocalAnalysis();
+            } catch (error) {
+                console.error('No se pudo iniciar el análisis vocal:', error);
+                updateAudioStatus('Reproduciendo song.mp3 · análisis vocal no disponible');
+            }
+
+            try {
                 await audio.play();
                 button.textContent = 'Pausar canción';
-                updateAudioStatus(`Point ${selectedPoint.toUpperCase()} · análisis vocal activo`);
+                updateAudioStatus(vocalAnalysisPlaying
+                    ? `Point ${selectedPoint.toUpperCase()} · análisis vocal activo`
+                    : `Point ${selectedPoint.toUpperCase()} · canción activa`);
             } catch (error) {
-                updateAudioStatus('Selecciona el WAV o abre el proyecto con un servidor local');
+                updateAudioStatus('No se pudo reproducir song.mp3 · abre el proyecto con un servidor local');
             }
         } else {
             audio.pause();
